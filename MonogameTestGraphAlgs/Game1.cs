@@ -21,13 +21,13 @@ namespace MonogameTestGraphAlgs
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             Window.AllowUserResizing = false;
-            IsFixedTimeStep = true;
-            TargetElapsedTime = TimeSpan.FromSeconds(1 / 60.0f);
+            /*IsFixedTimeStep = true;
+            TargetElapsedTime = TimeSpan.FromSeconds(1 / 60.0f);*/
         }
 
         protected override void Initialize()
         {
-            graphics.PreferredBackBufferWidth = 768;
+            graphics.PreferredBackBufferWidth = 1024;
             graphics.PreferredBackBufferHeight = 768;
             graphics.ApplyChanges();
 
@@ -46,22 +46,28 @@ namespace MonogameTestGraphAlgs
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
-
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.DarkGray);
+            GraphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin();
 
+            DrawMainArea();
             _map.Draw(gameTime, spriteBatch, GraphicsDevice);
 
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        private void DrawMainArea()
+        {
+            Texture2D texture = new Texture2D(GraphicsDevice, 1, 1);
+            texture.SetData(new Color[] { Color.DarkGray });
+            spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferHeight, graphics.PreferredBackBufferHeight), Color.DarkGray);
         }
     }
 }

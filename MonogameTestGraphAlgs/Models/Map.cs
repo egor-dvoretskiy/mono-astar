@@ -13,6 +13,7 @@ namespace MonogameTestGraphAlgs.Models
     public class Map
     {
         private readonly int _tileSize = 48;
+        private readonly int _tileOffset = 2;
         private readonly int[,] _map = new int[,]
         {
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 6 },
@@ -59,8 +60,8 @@ namespace MonogameTestGraphAlgs.Models
                     Color color = _tileColorDictionary[_map[j, i]];
 
                     Texture2D texture = new Texture2D(graphicsDevice, 1, 1);
-                    texture.SetData(new Color[] { color });
-                    spriteBatch.Draw(texture, new Rectangle(i * _tileSize + 1, j * _tileSize + 1, _tileSize - 2, _tileSize - 2), color);
+                    //texture.SetData(new Color[] { color });
+                    spriteBatch.Draw(texture, new Rectangle(i * _tileSize + _tileOffset, j * _tileSize + _tileOffset, _tileSize - _tileOffset * 2, _tileSize - _tileOffset * 2), color);
                 }
             }
         }
