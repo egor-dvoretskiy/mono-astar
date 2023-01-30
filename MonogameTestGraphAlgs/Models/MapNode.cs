@@ -28,11 +28,25 @@ namespace MonogameTestGraphAlgs.Models
 
         public MapNodeType Type { get; set; }
 
+        public AStarTileType AStarTileType { get; set; }
+
+        public int Value
+        {
+            get => (int)Type;
+        }
+
         public Color Color { get; set; }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, SpriteFont spriteFont)
         {
             spriteBatch.Draw(Texture, Rectangle, Color);
+
+            //if (AStarTileType == AStarTileType.Opened)
+                spriteBatch.DrawString(
+                    spriteFont, 
+                    "5", 
+                    new Vector2(Rectangle.X + Rectangle.Width / 2, Rectangle.Y + Rectangle.Height / 2),
+                    Color.Magenta);
         }
     }
 }

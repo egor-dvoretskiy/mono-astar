@@ -11,5 +11,11 @@ namespace AStar.Models
         public int X;
 
         public int Y;
+
+        public static bool operator ==(TilePosition position1, TilePosition position2) =>
+            position1.X == position2.X && position1.Y == position2.Y;
+
+        public static bool operator !=(TilePosition position1, TilePosition position2) =>
+            position1.X != position2.X || position1.Y != position2.Y;
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonogameTestGraphAlgs.Models;
+using MonogameTestGraphAlgs.Source.Algorithms;
 using System;
 using System.Security.AccessControl;
 
@@ -9,7 +10,6 @@ namespace MonogameTestGraphAlgs
 {
     public class Game1 : Game
     {
-        private readonly MonogameTestGraphAlgs.Source.Algorithms.AStar _astar;
         private readonly GraphicsDeviceManager _graphics;
 
         private SpriteBatch spriteBatch;
@@ -18,7 +18,6 @@ namespace MonogameTestGraphAlgs
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
-            _astar = new Source.Algorithms.AStar();
 
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -31,7 +30,7 @@ namespace MonogameTestGraphAlgs
             _graphics.PreferredBackBufferHeight = 768;
             _graphics.ApplyChanges();
 
-            map = new Map(GraphicsDevice);
+            map = new Map(GraphicsDevice, Content);
 
             base.Initialize();
         }
@@ -48,8 +47,6 @@ namespace MonogameTestGraphAlgs
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            _astar.Update();
-
             base.Update(gameTime);
         }
 
@@ -61,7 +58,6 @@ namespace MonogameTestGraphAlgs
 
             DrawMainArea();
             map.Draw(gameTime, spriteBatch);
-            _astar.Draw();
 
             spriteBatch.End();
 
