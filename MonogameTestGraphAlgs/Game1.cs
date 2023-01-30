@@ -9,27 +9,29 @@ namespace MonogameTestGraphAlgs
 {
     public class Game1 : Game
     {
-        private readonly Map _map;
+        private readonly MonogameTestGraphAlgs.Source.Algorithms.AStar _astar;
+        private readonly GraphicsDeviceManager _graphics;
 
-        private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
+        private Map map;
 
         public Game1()
         {
-            graphics = new GraphicsDeviceManager(this);
-            _map = new Map();
+            _graphics = new GraphicsDeviceManager(this);
+            _astar = new Source.Algorithms.AStar();
+
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             Window.AllowUserResizing = false;
-            /*IsFixedTimeStep = true;
-            TargetElapsedTime = TimeSpan.FromSeconds(1 / 60.0f);*/
         }
 
         protected override void Initialize()
         {
-            graphics.PreferredBackBufferWidth = 1024;
-            graphics.PreferredBackBufferHeight = 768;
-            graphics.ApplyChanges();
+            _graphics.PreferredBackBufferWidth = 1024;
+            _graphics.PreferredBackBufferHeight = 768;
+            _graphics.ApplyChanges();
+
+            map = new Map(GraphicsDevice);
 
             base.Initialize();
         }
@@ -46,6 +48,8 @@ namespace MonogameTestGraphAlgs
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            _astar.Update();
+
             base.Update(gameTime);
         }
 
@@ -56,7 +60,8 @@ namespace MonogameTestGraphAlgs
             spriteBatch.Begin();
 
             DrawMainArea();
-            _map.Draw(gameTime, spriteBatch, GraphicsDevice);
+            map.Draw(gameTime, spriteBatch);
+            _astar.Draw();
 
             spriteBatch.End();
 
@@ -67,7 +72,7 @@ namespace MonogameTestGraphAlgs
         {
             Texture2D texture = new Texture2D(GraphicsDevice, 1, 1);
             texture.SetData(new Color[] { Color.DarkGray });
-            spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferHeight, graphics.PreferredBackBufferHeight), Color.DarkGray);
+            spriteBatch.Draw(texture, new Rectangle(0, 0, _graphics.PreferredBackBufferHeight, _graphics.PreferredBackBufferHeight), Color.DarkGray);
         }
     }
 }
