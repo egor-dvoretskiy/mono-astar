@@ -39,6 +39,9 @@ namespace MonogameTestGraphAlgs.Models
         private readonly GraphicsDevice _graphicsDevice;
         private readonly MonogameTestGraphAlgs.Source.Algorithms.AStar _astar;
 
+        private TilePosition currentPosition;
+        private TilePosition targetPosition;
+
         public Map(GraphicsDevice graphicsDevice, ContentManager contentManager)
         {
             _graphicsDevice = graphicsDevice;
@@ -56,6 +59,7 @@ namespace MonogameTestGraphAlgs.Models
 
             _astar = new Source.Algorithms.AStar(this);
             _spriteFont = contentManager.Load<SpriteFont>("Fonts/FontAstarWeight");
+            InitializePositioning(new TilePosition() { X = 4, Y = 14 }, new TilePosition() { X = 15, Y = 0 });
         }
 
         public MapNode[,] Field
@@ -74,9 +78,25 @@ namespace MonogameTestGraphAlgs.Models
 
             //if (currentPosition != null)
                 _astar.Update(
-                    new TilePosition() { X = 4, Y = 14 },
-                    new TilePosition() { X = 0, Y = 15 }
+                    currentPosition,
+                    targetPosition
                 );
+        }
+
+        public void InitializePositioning(TilePosition current, TilePosition target)
+        {
+            UpdateCurrentPosition(current);
+            UpdateTargetPosition(target);
+        }
+
+        public void UpdateCurrentPosition(TilePosition tilePosition)
+        {
+            currentPosition = tilePosition;
+        }
+
+        public void UpdateTargetPosition(TilePosition tilePosition)
+        {
+            targetPosition = tilePosition;
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
@@ -88,8 +108,34 @@ namespace MonogameTestGraphAlgs.Models
                     _nodes[i, j].Draw(spriteBatch, _spriteFont);
                 }
             }
+        }
 
-            _astar.Draw();
+        public void UpdateTileNode(TilePosition tilePosition, Node node, AStarTileType type)
+        {
+            for (int i = 0; i < _map.GetLength(0); i++)
+            {
+                for (int j = 0; j < _map.GetLength(1); j++)
+                {
+                    if (tilePosition == _nodes[i, j].TilePosition)
+                    {
+                        _nodes[i, j].Node = node;
+                        _nodes[i, j].AStarTileType = type;
+
+                        switch(type)
+                        {
+                            case AStarTileType.Opened:
+                                _nodes[i, j].Color = new Color(Color.SkyBlue, 128);
+                                break;
+                            case AStarTileType.Closed:
+                                _nodes[i, j].Color = new Color(Color.LimeGreen, 128);
+                                break;
+                        }
+
+                        return;
+                    }
+
+                }
+            }
         }
 
         private void FillNodes()
@@ -110,6 +156,11 @@ namespace MonogameTestGraphAlgs.Models
                         Rectangle = new Rectangle(i * _tileSize + _tileOffset, j * _tileSize + _tileOffset, _tileSize - _tileOffset * 2, _tileSize - _tileOffset * 2),
                         Color = color,
                         Type = GetTypeByNodeValue(nodeValue),
+                        TilePosition = new TilePosition()
+                        {
+                            X = i,
+                            Y = j,
+                        }
                     };
                 }
             }

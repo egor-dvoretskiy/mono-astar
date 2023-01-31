@@ -5,6 +5,7 @@ using MonogameTestGraphAlgs.Models;
 using MonogameTestGraphAlgs.Source.Algorithms;
 using System;
 using System.Security.AccessControl;
+using System.Threading.Tasks;
 
 namespace MonogameTestGraphAlgs
 {
@@ -22,6 +23,9 @@ namespace MonogameTestGraphAlgs
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             Window.AllowUserResizing = false;
+            IsFixedTimeStep = true;
+            MaxElapsedTime = TimeSpan.FromSeconds(10);
+            TargetElapsedTime = TimeSpan.FromSeconds(1);
         }
 
         protected override void Initialize()
@@ -42,10 +46,12 @@ namespace MonogameTestGraphAlgs
             // TODO: use this.Content to load your game content here
         }
 
-        protected override void Update(GameTime gameTime)
+        protected override async void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            map.Update();
 
             base.Update(gameTime);
         }

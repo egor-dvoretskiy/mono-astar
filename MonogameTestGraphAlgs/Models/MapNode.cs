@@ -20,13 +20,15 @@ namespace MonogameTestGraphAlgs.Models
             _validatedNodeValues = Enum.GetValues(typeof(MapNodeType)).Cast<byte>().ToArray();
         }
 
-        public Node Node { get; set; }
+        public Node? Node { get; set; }
 
         public Texture2D Texture { get; set; }
 
         public Rectangle Rectangle { get; set; }
 
         public MapNodeType Type { get; set; }
+
+        public TilePosition TilePosition { get; set; }
 
         public AStarTileType AStarTileType { get; set; }
 
@@ -41,12 +43,20 @@ namespace MonogameTestGraphAlgs.Models
         {
             spriteBatch.Draw(Texture, Rectangle, Color);
 
-            //if (AStarTileType == AStarTileType.Opened)
-                spriteBatch.DrawString(
-                    spriteFont, 
-                    "5", 
-                    new Vector2(Rectangle.X + Rectangle.Width / 2, Rectangle.Y + Rectangle.Height / 2),
-                    Color.Magenta);
+            if (Node == null)
+                return;
+
+            string text = Node.Value.Weight.ToString();
+            var textDimensions = spriteFont.MeasureString(text);
+
+            spriteBatch.DrawString(
+                spriteFont,
+                text,
+                new Vector2(
+                    Rectangle.X + Rectangle.Width / 2 - textDimensions.X / 2,
+                    Rectangle.Y + Rectangle.Height / 2 - textDimensions.Y / 2
+                ),
+                Color.Orange);
         }
     }
 }
