@@ -213,7 +213,7 @@ namespace MonogameTestGraphAlgs.Models
 
             //if (_nodes[currentTile.X, currentTile.Y].Type != MapNodeType.EndPoint || _nodes[currentTile.X, currentTile.Y].Type != MapNodeType.StartPoint)
             {
-                if (latestClickedNodeType == MapNodeType.EndPoint)
+                if (latestClickedNodeType == MapNodeType.EndPoint && currentTile != currentPosition)
                 {
                     _nodes[targetPosition.X, targetPosition.Y].UpdateType(MapNodeType.Casual, _tileColorDictionary[(int)MapNodeType.Casual]);
                     _nodes[currentTile.X, currentTile.Y].UpdateType(MapNodeType.EndPoint, _tileColorDictionary[(int)MapNodeType.EndPoint]);
@@ -222,7 +222,7 @@ namespace MonogameTestGraphAlgs.Models
                     return;
                 }
 
-                if (latestClickedNodeType == MapNodeType.StartPoint)
+                if (latestClickedNodeType == MapNodeType.StartPoint && currentTile != targetPosition)
                 {
                     _nodes[currentPosition.X, currentPosition.Y].UpdateType(MapNodeType.Casual, _tileColorDictionary[(int)MapNodeType.Casual]);
                     _nodes[currentTile.X, currentTile.Y].UpdateType(MapNodeType.StartPoint, _tileColorDictionary[(int)MapNodeType.StartPoint]);
