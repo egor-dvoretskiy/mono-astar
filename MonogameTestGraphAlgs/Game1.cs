@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonogameTestGraphAlgs.Enums;
 using MonogameTestGraphAlgs.Models;
 using MonogameTestGraphAlgs.Source.Algorithms;
 using System;
@@ -15,6 +16,7 @@ namespace MonogameTestGraphAlgs
 
         private SpriteBatch spriteBatch;
         private Map map;
+        private ApplicationStage applicationStage;
 
         public Game1()
         {
@@ -23,9 +25,10 @@ namespace MonogameTestGraphAlgs
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             Window.AllowUserResizing = false;
-            IsFixedTimeStep = true;
-            MaxElapsedTime = TimeSpan.FromSeconds(10);
-            TargetElapsedTime = TimeSpan.FromSeconds(1);
+            //IsFixedTimeStep = true;
+            //MaxElapsedTime = TimeSpan.FromSeconds(10);
+            //TargetElapsedTime = TimeSpan.FromSeconds(1);
+            applicationStage = ApplicationStage.Preset;
         }
 
         protected override void Initialize()
@@ -51,7 +54,7 @@ namespace MonogameTestGraphAlgs
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            map.Update();
+            map.Update(applicationStage);
 
             base.Update(gameTime);
         }

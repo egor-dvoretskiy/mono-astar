@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MonogameTestGraphAlgs.Enums;
 using System;
 using System.Collections.Generic;
@@ -14,25 +15,7 @@ namespace MonogameTestGraphAlgs.Models
         private readonly int _tileSize = 48;
         private readonly int _tileOffset = 2;
         private readonly byte[] _validatedNodeValues;
-        private readonly int[,] _map = new int[,]
-        {
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 6 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0 },
-            { 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-            { 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        };
+        private readonly int[,] _map = new int[16, 16];
         private readonly Dictionary<int, Color> _tileColorDictionary;
         private readonly MapNode[,] _nodes;
         private readonly SpriteFont _spriteFont;
@@ -41,6 +24,12 @@ namespace MonogameTestGraphAlgs.Models
 
         private TilePosition currentPosition;
         private TilePosition targetPosition;
+
+        private MouseState previouseMouseState;
+        private MouseState currentMouseState;
+        private MapNodeType latestClickedNodeType;
+        private TilePosition latestClickedTilePosition;
+        private bool isLeftButtonMouseStateHold = false;
 
         public Map(GraphicsDevice graphicsDevice, ContentManager contentManager)
         {
@@ -59,7 +48,18 @@ namespace MonogameTestGraphAlgs.Models
 
             _astar = new Source.Algorithms.AStar(this);
             _spriteFont = contentManager.Load<SpriteFont>("Fonts/FontAstarWeight");
+
             InitializePositioning(new TilePosition() { X = 4, Y = 14 }, new TilePosition() { X = 15, Y = 0 });
+        }
+
+        public Rectangle WorkAreaRectangle
+        {
+            get => new Rectangle(
+                0,
+                0,
+                _map.GetLength(0) * TileSize, 
+                _map.GetLength(1) * TileSize
+            );
         }
 
         public MapNode[,] Field
@@ -72,15 +72,32 @@ namespace MonogameTestGraphAlgs.Models
             get => _tileSize;
         }
 
-        public void Update()
+        public void Update(ApplicationStage applicationStage)
         {
-            //var currentPosition = GetCurrentPosition();
+            UpdateMouseState();
 
-            //if (currentPosition != null)
-                _astar.Update(
-                    currentPosition,
-                    targetPosition
-                );
+            switch (applicationStage)
+            {
+                case ApplicationStage.Preset:
+                    {
+                        TilePosition currentTile = ConvertVectorToTilePosition(currentMouseState);
+
+                        if (!IsInWorkArea(currentMouseState))
+                            return;
+
+                        UpdateImportantTile(currentTile);
+                        UpdateBlackTile(currentTile);
+                    }
+                    break;
+                case ApplicationStage.Work:
+                    {
+                        _astar.Update(
+                            currentPosition,
+                            targetPosition
+                        );
+                    }
+                    break;
+            }
         }
 
         public void InitializePositioning(TilePosition current, TilePosition target)
@@ -92,11 +109,13 @@ namespace MonogameTestGraphAlgs.Models
         public void UpdateCurrentPosition(TilePosition tilePosition)
         {
             currentPosition = tilePosition;
+            _nodes[currentPosition.X, currentPosition.Y].UpdateType(MapNodeType.StartPoint, _tileColorDictionary[(int)MapNodeType.StartPoint]);
         }
 
         public void UpdateTargetPosition(TilePosition tilePosition)
         {
             targetPosition = tilePosition;
+            _nodes[targetPosition.X, targetPosition.Y].UpdateType(MapNodeType.EndPoint, _tileColorDictionary[(int)MapNodeType.EndPoint]);
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
@@ -133,7 +152,6 @@ namespace MonogameTestGraphAlgs.Models
 
                         return;
                     }
-
                 }
             }
         }
@@ -166,23 +184,103 @@ namespace MonogameTestGraphAlgs.Models
             }
         }
 
-        private TilePosition? GetCurrentPosition()
+        private void UpdateMouseState()
         {
-            for (int i = 0; i < Field.GetLength(0); i++)
+            previouseMouseState = currentMouseState;
+            currentMouseState = Mouse.GetState();
+
+            if (!IsInWorkArea(currentMouseState))
+                return;
+
+            if (previouseMouseState.LeftButton == ButtonState.Released &&
+                currentMouseState.LeftButton == ButtonState.Pressed)
             {
-                for (int j = 0; j < Field.GetLength(1); j++)
-                {
-                    if (Field[i, j].Type == MapNodeType.StartPoint)
-                        return new TilePosition()
-                        {
-                            X = i,
-                            Y = j,
-                        };
-                }
+                latestClickedTilePosition = ConvertVectorToTilePosition(currentMouseState);
+                latestClickedNodeType = (MapNodeType)GetMapValueByTilePosition(latestClickedTilePosition);
             }
 
-            return null;
+            if (previouseMouseState.LeftButton == ButtonState.Pressed &&
+                currentMouseState.LeftButton == ButtonState.Pressed)
+                isLeftButtonMouseStateHold = true;
+            else
+                isLeftButtonMouseStateHold = false;
         }
+
+        private void UpdateImportantTile(TilePosition currentTile)
+        {
+            if (!IsImportantTileReadyToMove())
+                return;
+
+            //if (_nodes[currentTile.X, currentTile.Y].Type != MapNodeType.EndPoint || _nodes[currentTile.X, currentTile.Y].Type != MapNodeType.StartPoint)
+            {
+                if (latestClickedNodeType == MapNodeType.EndPoint)
+                {
+                    _nodes[targetPosition.X, targetPosition.Y].UpdateType(MapNodeType.Casual, _tileColorDictionary[(int)MapNodeType.Casual]);
+                    _nodes[currentTile.X, currentTile.Y].UpdateType(MapNodeType.EndPoint, _tileColorDictionary[(int)MapNodeType.EndPoint]);
+
+                    targetPosition = currentTile;
+                    return;
+                }
+
+                if (latestClickedNodeType == MapNodeType.StartPoint)
+                {
+                    _nodes[currentPosition.X, currentPosition.Y].UpdateType(MapNodeType.Casual, _tileColorDictionary[(int)MapNodeType.Casual]);
+                    _nodes[currentTile.X, currentTile.Y].UpdateType(MapNodeType.StartPoint, _tileColorDictionary[(int)MapNodeType.StartPoint]);
+
+                    currentPosition = currentTile;
+                    return;
+                }
+            }
+        }
+
+        private void UpdateBlackTile(TilePosition currentTile)
+        {
+            if (!IsNotImportantTile(currentTile))
+                return;
+
+            if (GetMapValueByTilePosition(currentTile) == 1 && 
+                previouseMouseState.RightButton == ButtonState.Pressed)
+            {
+                SetValueToMapByTilePosition(currentTile, 0);
+                return;
+            }
+                
+            if (GetMapValueByTilePosition(currentTile) == 0 && 
+                previouseMouseState.LeftButton == ButtonState.Pressed)
+            {
+                SetValueToMapByTilePosition(currentTile, 1);
+                return;
+            }
+        }
+
+        private TilePosition ConvertVectorToTilePosition(MouseState mouseState)
+        {
+            int xtile = (int)Math.Floor((double)mouseState.X / (double)TileSize);
+            int ytile = (int)Math.Floor((double)mouseState.Y / (double)TileSize);
+
+            return new TilePosition()
+            {
+                X = xtile,
+                Y = ytile,
+            };
+        }
+
+        private bool IsInWorkArea(MouseState mouseState) =>
+            WorkAreaRectangle.Intersects(new Rectangle(mouseState.X, mouseState.Y, 1, 1));
+
+        private bool IsNotImportantTile(TilePosition tilePosition) =>
+            !IsTilesMatch(tilePosition, currentPosition) && !IsTilesMatch(tilePosition, targetPosition);
+
+        private bool IsTilesMatch(TilePosition tilePosition1, TilePosition tilePosition2) => tilePosition1 == tilePosition2;
+
+        private int GetMapValueByTilePosition(TilePosition tilePosition) => (int)_nodes[tilePosition.X, tilePosition.Y].Type;
+
+        private void SetValueToMapByTilePosition(TilePosition tilePosition, int value)
+        {
+            _nodes[tilePosition.X, tilePosition.Y].UpdateType((MapNodeType)value, _tileColorDictionary[value]);
+        }
+
+        private bool IsImportantTileReadyToMove() => (latestClickedNodeType == MapNodeType.EndPoint || latestClickedNodeType == MapNodeType.StartPoint) && isLeftButtonMouseStateHold;
 
         private MapNodeType GetTypeByNodeValue(int node)
         {

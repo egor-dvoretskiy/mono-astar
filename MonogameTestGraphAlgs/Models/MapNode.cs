@@ -13,13 +13,6 @@ namespace MonogameTestGraphAlgs.Models
 {
     public class MapNode
     {
-        private readonly byte[] _validatedNodeValues;
-
-        public MapNode()
-        {
-            _validatedNodeValues = Enum.GetValues(typeof(MapNodeType)).Cast<byte>().ToArray();
-        }
-
         public Node? Node { get; set; }
 
         public Texture2D Texture { get; set; }
@@ -57,6 +50,12 @@ namespace MonogameTestGraphAlgs.Models
                     Rectangle.Y + Rectangle.Height / 2 - textDimensions.Y / 2
                 ),
                 Color.Orange);
+        }
+
+        public void UpdateType(MapNodeType mapNodeType, Color color)
+        {
+            Type = mapNodeType;
+            Color = color;
         }
     }
 }
