@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonogameTestGraphAlgs.Enums;
 using MonogameTestGraphAlgs.Models;
+using MonogameTestGraphAlgs.Models.GUI;
 using MonogameTestGraphAlgs.Source.Algorithms;
 using System;
 using System.Security.AccessControl;
@@ -15,6 +16,8 @@ namespace MonogameTestGraphAlgs
         private readonly GraphicsDeviceManager _graphics;
 
         private SpriteBatch spriteBatch;
+        private SpriteFont spriteFont;
+        private Button buttonRun;
         private Map map;
         private ApplicationStage applicationStage;
 
@@ -39,12 +42,29 @@ namespace MonogameTestGraphAlgs
 
             map = new Map(GraphicsDevice, Content);
 
+            buttonRun = new Button(GraphicsDevice, 
+                new Rectangle
+                (
+                    _graphics.PreferredBackBufferHeight,
+                    0,
+                    _graphics.PreferredBackBufferWidth - _graphics.PreferredBackBufferHeight,
+                    _graphics.PreferredBackBufferHeight
+                )
+            );
+            buttonRun.OnMouseClick += ButtonRun_OnMouseClick;
+
             base.Initialize();
+        }
+
+        private void ButtonRun_OnMouseClick()
+        {
+            applicationStage = applicationStage == ApplicationStage.Preset ? ApplicationStage.Work : ApplicationStage.Preset;
         }
 
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            spriteFont = Content.Load<SpriteFont>("Fonts/ButtonFont");
 
             // TODO: use this.Content to load your game content here
         }
@@ -54,6 +74,7 @@ namespace MonogameTestGraphAlgs
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            buttonRun.Update(applicationStage);
             map.Update(applicationStage);
 
             base.Update(gameTime);
@@ -65,6 +86,7 @@ namespace MonogameTestGraphAlgs
 
             spriteBatch.Begin();
 
+            buttonRun.Draw(spriteBatch, spriteFont);
             DrawMainArea();
             map.Draw(gameTime, spriteBatch);
 

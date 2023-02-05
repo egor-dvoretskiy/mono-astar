@@ -25,6 +25,11 @@
   <ItemGroup>
     <ProjectReference Include="..\AStar\AStar.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="MouseInteractorLib">
+      <HintPath>..\..\MonogameMyOwnLibsSolution\MouseInteractor\bin\Debug\net6.0\MouseInteractorLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />
     <Exec Command="dotnet tool restore" />
