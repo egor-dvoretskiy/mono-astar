@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonogameTestGraphAlgs.Enums;
@@ -13,11 +14,14 @@ namespace MonogameTestGraphAlgs.Models.GUI
 {
     public class Button
     {
-        private readonly string runButtonText = "Run";
-        private readonly string stopButtonText = "Stop";
+        private readonly string _runButtonText = "Run";
+        private readonly string _stopButtonText = "Stop";
         private readonly MouseInteractor _mouseInteractor;
+        private readonly Texture2D _textureCommon;
+        private readonly Texture2D _textureHover;
 
         private ApplicationStage applicationStage;
+        private bool _isHovered;
 
         public delegate void MouseHandler();
 
@@ -29,46 +33,43 @@ namespace MonogameTestGraphAlgs.Models.GUI
 
         public Texture2D Texture { get; set; }
 
-        public Color Color { get; set; }
-
-        public Button(GraphicsDevice graphicsDevice, Rectangle outsideBox)
+        public bool IsHovered
         {
-            Color = Color.Wheat;
-            Texture = new Texture2D(graphicsDevice, 1, 1);
-            Texture.SetData(new Color[] { Color });
+            get => _isHovered;
+        }
+
+        public Button(GraphicsDevice graphicsDevice, Rectangle outsideBox, ContentManager content)
+        {
+            _textureCommon = content.Load<Texture2D>("GUI/Button");
+            _textureHover = content.Load<Texture2D>("GUI/ButtonHover");
+
+            Texture = _textureCommon;
 
             _mouseInteractor = new MouseInteractor();
             _mouseInteractor.OnMouseLeftClick += MouseInteractor_OnMouseLeftClick;
 
             OutsideBox = outsideBox;
             Rectangle = new Rectangle(
-                outsideBox.X,
+                outsideBox.X + outsideBox.Width / 2 - _textureCommon.Width / 2,
                 0,
-                outsideBox.Width,
-                30
+                Texture.Width,
+                Texture.Height
             );
-        }
-
-        private void MouseInteractor_OnMouseLeftClick()
-        {
-            var mousePosition = Mouse.GetState();
-
-            if (Rectangle.Intersects(new Rectangle(mousePosition.Position, new Point(1, 1))))
-                OnMouseClick?.Invoke();
         }
 
         public void Update(ApplicationStage applicationStage)
         {
             this.applicationStage = applicationStage;
 
+            CheckIfHover();
             _mouseInteractor.Update();
         }
 
         public void Draw(SpriteBatch spriteBatch, SpriteFont spriteFont)
         {
-            spriteBatch.Draw(Texture,
+            spriteBatch.Draw(IsHovered ? _textureHover : _textureCommon,
                 Rectangle,
-                Color.Wheat
+                Color.White
             );
 
             switch (applicationStage)
@@ -77,13 +78,13 @@ namespace MonogameTestGraphAlgs.Models.GUI
                     {
                         spriteBatch.DrawString(
                             spriteFont,
-                            runButtonText,
+                            _runButtonText,
                             new Vector2()
                             {
-                                X = Rectangle.X + Rectangle.Width / 2 - spriteFont.MeasureString(runButtonText).X / 2,
-                                Y = Rectangle.Y + Rectangle.Height / 2 - spriteFont.MeasureString(runButtonText).Y / 2,
+                                X = Rectangle.X + Rectangle.Width / 2 - spriteFont.MeasureString(_runButtonText).X / 2,
+                                Y = Rectangle.Y + Rectangle.Height / 2 - spriteFont.MeasureString(_runButtonText).Y / 2,
                             },
-                            Color.Magenta
+                            Color.Black
                         );
                     }
                     break;
@@ -91,17 +92,36 @@ namespace MonogameTestGraphAlgs.Models.GUI
                     {
                         spriteBatch.DrawString(
                             spriteFont,
-                            stopButtonText,
+                            _stopButtonText,
                             new Vector2()
                             {
-                                X = Rectangle.X + Rectangle.Width / 2 - spriteFont.MeasureString(stopButtonText).X / 2,
-                                Y = Rectangle.Y + Rectangle.Height / 2 - spriteFont.MeasureString(stopButtonText).Y / 2,
+                                X = Rectangle.X + Rectangle.Width / 2 - spriteFont.MeasureString(_stopButtonText).X / 2,
+                                Y = Rectangle.Y + Rectangle.Height / 2 - spriteFont.MeasureString(_stopButtonText).Y / 2,
                             },
-                            Color.Magenta
+                            Color.Black
                         );
                     }
                     break;
             }
+        }
+
+        private void CheckIfHover()
+        {
+            var mousePosition = Mouse.GetState();
+
+            if (Rectangle.Intersects(new Rectangle(mousePosition.Position, new Point(1, 1))))
+            {
+                _isHovered = true;
+                return;
+            }
+
+            _isHovered = false;
+        }
+
+        private void MouseInteractor_OnMouseLeftClick()
+        {
+            if (IsHovered)
+                OnMouseClick?.Invoke();
         }
     }
 }

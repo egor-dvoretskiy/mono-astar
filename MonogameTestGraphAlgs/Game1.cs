@@ -14,6 +14,7 @@ namespace MonogameTestGraphAlgs
     public class Game1 : Game
     {
         private readonly GraphicsDeviceManager _graphics;
+        private readonly Color _backgroundColor = new Color(128, 149, 152);
 
         private SpriteBatch spriteBatch;
         private SpriteFont spriteFont;
@@ -42,23 +43,7 @@ namespace MonogameTestGraphAlgs
 
             map = new Map(GraphicsDevice, Content);
 
-            buttonRun = new Button(GraphicsDevice, 
-                new Rectangle
-                (
-                    _graphics.PreferredBackBufferHeight,
-                    0,
-                    _graphics.PreferredBackBufferWidth - _graphics.PreferredBackBufferHeight,
-                    _graphics.PreferredBackBufferHeight
-                )
-            );
-            buttonRun.OnMouseClick += ButtonRun_OnMouseClick;
-
             base.Initialize();
-        }
-
-        private void ButtonRun_OnMouseClick()
-        {
-            applicationStage = applicationStage == ApplicationStage.Preset ? ApplicationStage.Work : ApplicationStage.Preset;
         }
 
         protected override void LoadContent()
@@ -66,7 +51,18 @@ namespace MonogameTestGraphAlgs
             spriteBatch = new SpriteBatch(GraphicsDevice);
             spriteFont = Content.Load<SpriteFont>("Fonts/ButtonFont");
 
-            // TODO: use this.Content to load your game content here
+
+            buttonRun = new Button(GraphicsDevice,
+                new Rectangle
+                (
+                    _graphics.PreferredBackBufferHeight,
+                    0,
+                    _graphics.PreferredBackBufferWidth - _graphics.PreferredBackBufferHeight,
+                    _graphics.PreferredBackBufferHeight
+                ),
+                Content
+            );
+            buttonRun.OnMouseClick += ButtonRun_OnMouseClick;
         }
 
         protected override async void Update(GameTime gameTime)
@@ -82,7 +78,7 @@ namespace MonogameTestGraphAlgs
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(_backgroundColor);
 
             spriteBatch.Begin();
 
@@ -100,6 +96,11 @@ namespace MonogameTestGraphAlgs
             Texture2D texture = new Texture2D(GraphicsDevice, 1, 1);
             texture.SetData(new Color[] { Color.DarkGray });
             spriteBatch.Draw(texture, new Rectangle(0, 0, _graphics.PreferredBackBufferHeight, _graphics.PreferredBackBufferHeight), Color.DarkGray);
+        }
+
+        private void ButtonRun_OnMouseClick()
+        {
+            applicationStage = applicationStage == ApplicationStage.Preset ? ApplicationStage.Work : ApplicationStage.Preset;
         }
     }
 }
